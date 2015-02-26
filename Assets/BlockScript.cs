@@ -5,21 +5,28 @@ public class BlockScript : MonoBehaviour {
 
 	Vector3 vel;
 	float speed;
+	public bool isBonus;
+	public GameObject player;
+	private ballscript otherScript;
 	// Use this for initialization
 	void Start () {
 		//vel = new Vector3( 0, 0, 0 );
 		//vel = -transform.position;
 
-		speed = Random.Range( 1, 5 );
+		speed = Random.Range( 2, 5 );
 
 
 
 		//Determine if block is a bonus block
-		int randNum = Random.Range (1, 5);
+		int randNum = Random.Range (1, 3);
 		if (randNum == 1) 
 		{
-		//	transform.gameObject.tag= "Bonus";
+			isBonus = true;
 		}
+
+		player = GameObject.Find("Player");
+		otherScript = player.GetComponent<ballscript> ();
+
 	}
 
 	public void SetVelocity( Vector3 v )
@@ -33,7 +40,7 @@ public class BlockScript : MonoBehaviour {
 
 	void OnCollisionEnter(Collision collisionInfo)
 	{
-		if(collisionInfo.gameObject.name == "Player" && transform.gameObject.tag=="Bonus")
+		if(collisionInfo.gameObject.name == "Player")
 		{
 			for(int i = 0; i < transform.childCount;i++)
 			{
@@ -47,6 +54,12 @@ public class BlockScript : MonoBehaviour {
 
 			}*/
 		}
+		if(isBonus == true && collisionInfo.gameObject.name == "Player"){
+			isBonus = false;
+			otherScript.score += 1;
+
+			
+			}
 
 	/*	if (gameObject.tag == "Player") {
 			if( transform.position.y <= 10 )
@@ -65,6 +78,7 @@ public class BlockScript : MonoBehaviour {
 		if (collisionInfo.collider.tag == "Player")
 		{
 			//transform.gameObject.tag = "Block";
+			isBonus = false;
 		}
 		if (collisionInfo.collider.tag == "Player" && collisionInfo.contacts[0].normal.y < -.9 ) {
 			if( transform.position.y <= 4 )

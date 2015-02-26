@@ -9,6 +9,9 @@ public class ballscript : MonoBehaviour {
 	public float time;
 	public bool goalMet;
 	public int goal;
+	public GameObject player;
+	private ballscript otherScript;
+	private int controlType;
 	// Use this for initialization
 	void Start () {
 		hasJump = true;
@@ -19,14 +22,19 @@ public class ballscript : MonoBehaviour {
 		time = 60;
 		Physics.gravity = new Vector3 (0, -15, 0);
 		goalMet = false;
-		goal = 5;
+		goal = 1;
 		//GameObject.Find ("Fader").GetComponent<Fade> ().FadetoBlack ();
 		//yield return new WaitForSeconds (fadeTime);
 		//test ();
 		//testfunction ();
 		GameObject.Find ("Fader").GetComponent<Fade> ().FadeIn ();
 
+		player = GameObject.Find("Player");
+		otherScript = player.GetComponent<ballscript> ();
+		//otherScript = player.GetComponent<ballscript> ();
+
 		//yield return new WaitForSeconds (fadeTime);
+		controlType = 1;
 	}
 	
 	// Update is called once per frame
@@ -34,21 +42,44 @@ public class ballscript : MonoBehaviour {
 	{
 		//print ("ball vel: " + rigidbody.transform.position.x + ", " + rigidbody.transform.position.y + ", " 
 						//+ rigidbody.transform.position.z);
-		float forceFactor = 13 * rigidbody.mass;
-		if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey( KeyCode.W ) ) {
-			rigidbody.AddForce( 0, 0, forceFactor );
+
+		if (Input.GetKey (KeyCode.Alpha1)) {
+			controlType = 1;
+		} else if (Input.GetKey (KeyCode.Alpha2)) {
+			controlType = 2;
+		} else if (Input.GetKey (KeyCode.Alpha3)) {
+			controlType = 3;
 		}
 
-		if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey( KeyCode.S) ) {
-			rigidbody.AddForce( 0, 0, -forceFactor );
-		}
 
-		if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey( KeyCode.A) ) {
-			rigidbody.AddForce( -forceFactor, 0, 0 );
-		}
-
-		if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey( KeyCode.D) ) {
-			rigidbody.AddForce( forceFactor, 0, 0 );
+		if (controlType == 1) { // Original controls
+			float forceFactor = 15 * rigidbody.mass;
+			if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey (KeyCode.W)) {
+				rigidbody.AddForce (0, 0, forceFactor);
+			}
+			if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey (KeyCode.S)) {
+				rigidbody.AddForce (0, 0, -forceFactor);
+			}
+			if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey (KeyCode.A)) {
+				rigidbody.AddForce (-forceFactor, 0, 0);
+			}
+			if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey (KeyCode.D)) {
+				rigidbody.AddForce (forceFactor, 0, 0);
+			}
+		} else if(controlType == 2) { // Version 2 Control
+			if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey (KeyCode.W)) {
+				transform.Translate (Vector3.forward * 7f * Time.fixedDeltaTime, transform.parent);
+			}
+			if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey (KeyCode.S)) {
+				transform.Translate (Vector3.back * 7f * Time.fixedDeltaTime, transform.parent);
+			}
+			if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey (KeyCode.A)) {
+				transform.Translate (Vector3.left * 7f * Time.fixedDeltaTime, transform.parent);
+			}
+			if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey (KeyCode.D)) {
+				transform.Translate (Vector3.right * 7f * Time.fixedDeltaTime, transform.parent);
+				//transform.Rotate (0, 0, 5);
+			}
 		}
 
 
@@ -65,8 +96,9 @@ public class ballscript : MonoBehaviour {
 		
 		//renderer.material.shader = Shader.Find ("SciFi_Props-Pack03-diffuse");
 		renderer.material.SetColor ("_OutlineColor", new Color (f, f, f));
-
-		time -= Time.fixedDeltaTime;
+		if (goalMet != true) {
+						time -= Time.fixedDeltaTime;
+				}
 		if (time <= 0) {
 			Application.LoadLevel (Application.loadedLevel);
 		}
@@ -82,23 +114,25 @@ public class ballscript : MonoBehaviour {
 
 	}
 
-	void OnCollisionEnter(Collision collisionInfo)
+	IEnumerator OnCollisionEnter(Collision collisionInfo)
 	{
 		if (collisionInfo.collider.tag == "Block") {//&& collisionInfo.contacts [0].normal.y > .99) {
 						hasJump = true;
 			
 						//print ("has jump");
 				} else if (collisionInfo.collider.tag == "Ground") {
+						float fadeTime = GameObject.Find ("Player").GetComponent<Fade>().BeginFade(1);
+						yield return new WaitForSeconds(fadeTime);
 						Application.LoadLevel (Application.loadedLevel);
 						print ("Resetting");
 				} else if (collisionInfo.collider.tag == "Item") {
 					//print ( "item!!!" );
 					//Destroy( collisionInfo.collider );
 				}
-		if (collisionInfo.collider.tag == "Bonus")
-		{
-			score++;
-		}
+		//if (collisionInfo.collider.tag == "Bonus")
+		//{
+			//score++;
+		//}
 		if (collisionInfo.collider.tag == "Ground")
 		{
 			score = 0;
